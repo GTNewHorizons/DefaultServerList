@@ -66,7 +66,7 @@ public class Config {
                             config.prevDefaultServers = remoteDefaultServers.values();
                             saveConfig(config);
                         }
-                        
+
                     } else {
                         config.servers = remoteDefaultServers;
                         saveConfig(config);
