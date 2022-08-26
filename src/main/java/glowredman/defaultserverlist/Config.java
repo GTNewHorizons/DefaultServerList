@@ -49,7 +49,7 @@ public class Config {
                                 private static final long serialVersionUID = -1786059589535074931L;
                             }.getType());
 
-                    if (config.allowDeletions) {
+                    if (config.allowModifications) {
                         // servers that were added to the remote location since the last time the list was fetched
                         Map<String, String> diff = new LinkedHashMap<>();
 
@@ -99,7 +99,7 @@ public class Config {
     public static final class ConfigObj {
 
         public boolean useURL = false;
-        public boolean allowDeletions = true;
+        public boolean allowModifications = true;
         public String url = "";
         public Map<String, String> servers = new LinkedHashMap<>();
 

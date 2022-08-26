@@ -53,7 +53,7 @@ public class ServerListMixin {
      */
     @Inject(at = @At("TAIL"), method = "saveServerList()V")
     private void saveDefaultServerList(CallbackInfo ci) {
-        if (Config.config.allowDeletions) {
+        if (Config.config.allowModifications) {
             try {
                 Map<String, String> newServers = new LinkedHashMap<>();
                 Config.SERVERS.forEach(serverData -> newServers.put(serverData.serverName, serverData.serverIP));
@@ -87,7 +87,7 @@ public class ServerListMixin {
     public void removeServerData(int index) {
         if (index < servers.size()) {
             servers.remove(index);
-        } else if (Config.config.allowDeletions) {
+        } else if (Config.config.allowModifications) {
             Config.SERVERS.remove(index - servers.size());
         }
     }
@@ -103,14 +103,27 @@ public class ServerListMixin {
     }
 
     /**
-     * Cancel the swap if any of the ServerData objects to swap are in the default server list
-     * @author glowredman
+     * Swaps default servers.
+     * @author Quarri6343
+     * @reason DefaultServerList
      */
-    @Inject(at = @At("HEAD"), cancellable = true, method = "swapServers(II)V")
-    private void swapServersCheck(int index1, int index2, CallbackInfo ci) {
-        if (index1 >= servers.size() || index2 >= servers.size()) {
-            ci.cancel();
+    @Overwrite
+    public void swapServers(int index1, int index2) {
+        if (index1 < servers.size() && index2 < servers.size()) {
+            ServerData serverdata = this.getServerData(index1);
+            this.servers.set(index1, this.getServerData(index2));
+            this.servers.set(index2, serverdata);
+            this.saveServerList();
+        } else if (index1 >= servers.size() && index2 >= servers.size()) {
+            ServerData serverdata = this.getServerData(index1);
+            Config.SERVERS.set(index1 - servers.size(), this.getServerData(index2));
+            Config.SERVERS.set(index2 - servers.size(), serverdata);
+            this.saveDefaultServerList(null);
         }
+    }
+
+    @Shadow
+    public void saveServerList() {
     }
 
     /**
