@@ -123,8 +123,7 @@ public class ServerListMixin {
     }
 
     @Shadow
-    public void saveServerList() {
-    }
+    public void saveServerList() {}
 
     /**
      * Sets the ServerData instance stored for the given index in the list.
