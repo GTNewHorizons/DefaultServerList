@@ -45,6 +45,7 @@ public class ServerListMixin {
             }
             return false;
         });
+        for (ServerData s : Config.SERVERS) s.field_78841_f = false;
     }
 
     /**
