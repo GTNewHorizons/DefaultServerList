@@ -1,10 +1,5 @@
 package glowredman.defaultserverlist;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.SerializedName;
-import cpw.mods.fml.common.FMLLog;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -18,8 +13,16 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import net.minecraft.client.multiplayer.ServerData;
+
 import org.apache.commons.io.IOUtils;
+
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.SerializedName;
+import cpw.mods.fml.common.FMLLog;
 
 public class Config {
 
@@ -46,6 +49,7 @@ public class Config {
                     Map<String, String> remoteDefaultServers = GSON.fromJson(
                             IOUtils.toString(new URL(config.url), StandardCharsets.UTF_8),
                             new TypeToken<LinkedHashMap<String, String>>() {
+
                                 private static final long serialVersionUID = -1786059589535074931L;
                             }.getType());
 

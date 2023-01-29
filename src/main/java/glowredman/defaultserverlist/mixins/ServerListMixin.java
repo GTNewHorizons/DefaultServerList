@@ -1,11 +1,12 @@
 package glowredman.defaultserverlist.mixins;
 
-import glowredman.defaultserverlist.Config;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
+
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -13,6 +14,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import glowredman.defaultserverlist.Config;
 
 @Mixin(ServerList.class)
 public class ServerListMixin {
@@ -24,22 +27,16 @@ public class ServerListMixin {
 
     /**
      * Removes all servers from servers.dat that are already in the default list
+     * 
      * @author glowredman
      */
     @SuppressWarnings("unchecked")
     @Inject(at = @At("TAIL"), method = "loadServerList()V")
     private void removeDuplicateServers(CallbackInfo ci) {
         servers.removeIf(o -> {
-            String s1 = ((ServerData) o)
-                    .serverIP
-                    .replace("http://", "")
-                    .replace("https://", "")
-                    .replace(":25565", "");
+            String s1 = ((ServerData) o).serverIP.replace("http://", "").replace("https://", "").replace(":25565", "");
             for (ServerData s2 : Config.SERVERS) {
-                if (s1.equals(s2.serverIP
-                        .replace("http://", "")
-                        .replace("https://", "")
-                        .replace(":25565", ""))) {
+                if (s1.equals(s2.serverIP.replace("http://", "").replace("https://", "").replace(":25565", ""))) {
                     return true;
                 }
             }
@@ -50,6 +47,7 @@ public class ServerListMixin {
 
     /**
      * Save default servers
+     * 
      * @author glowredman
      */
     @Inject(at = @At("TAIL"), method = "saveServerList()V")
@@ -68,6 +66,7 @@ public class ServerListMixin {
 
     /**
      * Gets the ServerData instance stored for the given index in the list.
+     * 
      * @reason DefaultServerList
      * @author glowredman
      */
@@ -81,6 +80,7 @@ public class ServerListMixin {
 
     /**
      * Removes the ServerData instance stored for the given index in the list.
+     * 
      * @reason DefaultServerList
      * @author glowredman
      */
@@ -95,6 +95,7 @@ public class ServerListMixin {
 
     /**
      * Counts the number of ServerData instances in the list.
+     * 
      * @reason DefaultServerList
      * @author glowredman
      */
@@ -105,6 +106,7 @@ public class ServerListMixin {
 
     /**
      * Swaps default servers.
+     * 
      * @author Quarri6343
      * @reason DefaultServerList
      */
@@ -128,6 +130,7 @@ public class ServerListMixin {
 
     /**
      * Sets the ServerData instance stored for the given index in the list.
+     * 
      * @reason DefaultServerList
      * @author glowredman
      */
