@@ -4,9 +4,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import org.spongepowered.asm.lib.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
-import org.spongepowered.libraries.org.objectweb.asm.tree.ClassNode;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 
