@@ -1,3 +1,3 @@
 defaultServerList.button.disable=X
 defaultServerList.button.disable.tooltip=Disable Default Server List
-defaultServerList.button.disable.tooltip.disabled=Default Server List is already disabled
+defaultServerList.button.disable.tooltip.disabled=Enable Default Server List

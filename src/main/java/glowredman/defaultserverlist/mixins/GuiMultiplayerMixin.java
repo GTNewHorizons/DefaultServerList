@@ -37,20 +37,14 @@ public abstract class GuiMultiplayerMixin extends GuiScreen {
                         20,
                         I18n.format("defaultServerList.button.disable")) {
 
-                    {
-                        // update the button status
-                        // no need to update in other places, because this screen will be re-created when the button is
-                        // clicked.
-                        enabled = !Config.config.disabled;
-                    }
-
                     @Override
                     public void func_146111_b(int mouseX, int mouseY) {
                         drawHoveringText(
                                 Collections.singletonList(
                                         I18n.format(
-                                                enabled ? "defaultServerList.button.disable.tooltip"
-                                                        : "defaultServerList.button.disable.tooltip.disabled")),
+                                                Config.isDisabled()
+                                                        ? "defaultServerList.button.disable.tooltip.disabled"
+                                                        : "defaultServerList.button.disable.tooltip")),
                                 mouseX,
                                 mouseY,
                                 fontRendererObj);
@@ -61,7 +55,7 @@ public abstract class GuiMultiplayerMixin extends GuiScreen {
     @Inject(method = "actionPerformed", at = @At("TAIL"))
     private void defaultServerList$disableButtonClicked(GuiButton button, CallbackInfo ci) {
         if (button.id == 10) {
-            Config.disable();
+            Config.setDisabled(!Config.isDisabled());
             // reopen the screen to apply the change
             Minecraft mc = Minecraft.getMinecraft();
             if (mc.currentScreen instanceof GuiMultiplayer) {

@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,7 @@ import cpw.mods.fml.common.FMLLog;
 public class Config {
 
     public static ConfigObj config = new ConfigObj();
-    public static final List<ServerData> SERVERS = new ArrayList<>();
+    private static final List<ServerData> SERVERS = new ArrayList<>();
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static Path configPath;
 
@@ -42,10 +43,6 @@ public class Config {
             } else {
                 fileReader = Files.newBufferedReader(configPath, StandardCharsets.UTF_8);
                 config = GSON.fromJson(fileReader, ConfigObj.class);
-            }
-
-            if (config.disabled) {
-                return;
             }
 
             if (config.useURL) {
@@ -88,7 +85,6 @@ public class Config {
             }
 
             config.servers.forEach((name, ip) -> SERVERS.add(new ServerData(name, ip)));
-
         } catch (Exception e) {
             FMLLog.severe("Could not parse default server list!");
             e.printStackTrace();
@@ -105,15 +101,22 @@ public class Config {
         Files.write(configPath, Arrays.asList(GSON.toJson(config)), StandardCharsets.UTF_8);
     }
 
-    public static void disable() {
-        config.disabled = true;
+    public static void setDisabled(boolean value) {
+        config.disabled = value;
         try {
             saveConfig(config);
         } catch (IOException e) {
             FMLLog.severe("Could not save default server list!");
             e.printStackTrace();
         }
-        Config.SERVERS.clear();
+    }
+
+    public static boolean isDisabled() {
+        return config.disabled;
+    }
+
+    public static List<ServerData> getServers() {
+        return config.disabled ? Collections.emptyList() : SERVERS;
     }
 
     public static final class ConfigObj {

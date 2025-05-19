@@ -35,14 +35,14 @@ public class ServerListMixin {
     private void removeDuplicateServers(CallbackInfo ci) {
         servers.removeIf(o -> {
             String s1 = ((ServerData) o).serverIP.replace("http://", "").replace("https://", "").replace(":25565", "");
-            for (ServerData s2 : Config.SERVERS) {
+            for (ServerData s2 : Config.getServers()) {
                 if (s1.equals(s2.serverIP.replace("http://", "").replace("https://", "").replace(":25565", ""))) {
                     return true;
                 }
             }
             return false;
         });
-        for (ServerData s : Config.SERVERS) s.field_78841_f = false;
+        for (ServerData s : Config.getServers()) s.field_78841_f = false;
     }
 
     /**
@@ -55,7 +55,7 @@ public class ServerListMixin {
         if (Config.config.allowModifications) {
             try {
                 Map<String, String> newServers = new LinkedHashMap<>();
-                Config.SERVERS.forEach(serverData -> newServers.put(serverData.serverName, serverData.serverIP));
+                Config.getServers().forEach(serverData -> newServers.put(serverData.serverName, serverData.serverIP));
                 Config.config.servers = newServers;
                 Config.saveConfig(Config.config);
             } catch (Exception e) {
@@ -75,7 +75,7 @@ public class ServerListMixin {
         if (index < servers.size()) {
             return (ServerData) servers.get(index);
         }
-        return Config.SERVERS.get(index - servers.size());
+        return Config.getServers().get(index - servers.size());
     }
 
     /**
@@ -89,7 +89,7 @@ public class ServerListMixin {
         if (index < servers.size()) {
             servers.remove(index);
         } else if (Config.config.allowModifications) {
-            Config.SERVERS.remove(index - servers.size());
+            Config.getServers().remove(index - servers.size());
         }
     }
 
@@ -101,7 +101,7 @@ public class ServerListMixin {
      */
     @Overwrite
     public int countServers() {
-        return servers.size() + Config.SERVERS.size();
+        return servers.size() + Config.getServers().size();
     }
 
     /**
@@ -119,8 +119,8 @@ public class ServerListMixin {
             this.saveServerList();
         } else if (index1 >= servers.size() && index2 >= servers.size()) {
             ServerData serverdata = this.getServerData(index1);
-            Config.SERVERS.set(index1 - servers.size(), this.getServerData(index2));
-            Config.SERVERS.set(index2 - servers.size(), serverdata);
+            Config.getServers().set(index1 - servers.size(), this.getServerData(index2));
+            Config.getServers().set(index2 - servers.size(), serverdata);
             this.saveDefaultServerList(null);
         }
     }
