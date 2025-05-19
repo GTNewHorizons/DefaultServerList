@@ -44,6 +44,10 @@ public class Config {
                 config = GSON.fromJson(fileReader, ConfigObj.class);
             }
 
+            if (config.disabled) {
+                return;
+            }
+
             if (config.useURL) {
                 try {
                     // servers that are currently at the remote location
@@ -101,12 +105,24 @@ public class Config {
         Files.write(configPath, Arrays.asList(GSON.toJson(config)), StandardCharsets.UTF_8);
     }
 
+    public static void disable() {
+        config.disabled = true;
+        try {
+            saveConfig(config);
+        } catch (IOException e) {
+            FMLLog.severe("Could not save default server list!");
+            e.printStackTrace();
+        }
+        Config.SERVERS.clear();
+    }
+
     public static final class ConfigObj {
 
         public boolean useURL = false;
         public boolean allowModifications = true;
         public String url = "";
         public Map<String, String> servers = new LinkedHashMap<>();
+        public boolean disabled = false;
 
         @SerializedName("DO_NOT_EDIT_prevDefaultServers")
         public Collection<String> prevDefaultServers = new ArrayList<>();
