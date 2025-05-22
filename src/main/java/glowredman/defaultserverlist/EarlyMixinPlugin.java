@@ -1,14 +1,15 @@
 package glowredman.defaultserverlist;
 
-import com.google.common.collect.Lists;
-import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
-import cpw.mods.fml.relauncher.FMLLaunchHandler;
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.google.common.collect.Lists;
+import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
+
+import cpw.mods.fml.relauncher.FMLLaunchHandler;
+import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
 @IFMLLoadingPlugin.MCVersion("1.7.10")
 public class EarlyMixinPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader {
@@ -20,7 +21,7 @@ public class EarlyMixinPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader {
 
     @Override
     public List<String> getMixins(Set<String> loadedCoreMods) {
-        if(FMLLaunchHandler.side().isClient()) {
+        if (FMLLaunchHandler.side().isClient()) {
             return Lists.newArrayList("ServerListMixin", "GuiMultiplayerMixin");
         }
         return Collections.emptyList();
