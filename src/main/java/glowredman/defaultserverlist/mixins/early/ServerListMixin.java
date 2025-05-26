@@ -1,4 +1,4 @@
-package glowredman.defaultserverlist.mixins;
+package glowredman.defaultserverlist.mixins.early;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,7 +32,7 @@ public class ServerListMixin {
     @Inject(at = @At("TAIL"), method = "loadServerList()V")
     private void removeDuplicateServers(CallbackInfo ci) {
         servers.removeIf(o -> {
-            String s1 = ((ServerData) o).serverIP.replace("http://", "").replace("https://", "").replace(":25565", "");
+            String s1 = o.serverIP.replace("http://", "").replace("https://", "").replace(":25565", "");
             for (ServerData s2 : Config.SERVERS) {
                 if (s1.equals(s2.serverIP.replace("http://", "").replace("https://", "").replace(":25565", ""))) {
                     return true;
@@ -71,7 +71,7 @@ public class ServerListMixin {
     @Overwrite
     public ServerData getServerData(int index) {
         if (index < servers.size()) {
-            return (ServerData) servers.get(index);
+            return servers.get(index);
         }
         return Config.SERVERS.get(index - servers.size());
     }
