@@ -6,11 +6,11 @@
       "version": "${modVersion}",
       "mcversion": "${minecraftVersion}",
       "url": "https://github.com/glowredman/DefaultServerList",
-      "updateUrl": "https://data-hole.ddns.net:8081/mods/defaultserverlist/updates.json",
+      "updateUrl": "https://files.data-hole.de/mods/defaultserverlist/updates.json",
       "authorList": ["glowredman"],
       "credits": "",
       "logoFile": "",
       "screenshots": [],
-      "dependencies": ["spongemixins"]
+      "dependencies": []
     }
 ]
