@@ -20,17 +20,15 @@ import glowredman.defaultserverlist.Config;
 @Mixin(ServerList.class)
 public class ServerListMixin {
 
-    @SuppressWarnings("rawtypes")
     @Shadow
     @Final
-    private List servers;
+    private List<ServerData> servers;
 
     /**
      * Removes all servers from servers.dat that are already in the default list
      * 
      * @author glowredman
      */
-    @SuppressWarnings("unchecked")
     @Inject(at = @At("TAIL"), method = "loadServerList()V")
     private void removeDuplicateServers(CallbackInfo ci) {
         servers.removeIf(o -> {
@@ -134,7 +132,6 @@ public class ServerListMixin {
      * @reason DefaultServerList
      * @author glowredman
      */
-    @SuppressWarnings("unchecked")
     @Overwrite
     public void func_147413_a(int index, ServerData data) {
         if (index < servers.size()) {
