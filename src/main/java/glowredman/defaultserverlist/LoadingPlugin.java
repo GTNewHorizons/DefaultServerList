@@ -19,11 +19,13 @@ import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions;
 import cpw.mods.fml.relauncher.Side;
 
 @MCVersion("1.7.10")
-@Name("DefaultServerList")
+@Name("DefaultServerList Core")
 @TransformerExclusions("glowredman.defaultserverlist.LoadingPlugin")
 public class LoadingPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader {
 
     public static final Logger LOGGER = LogManager.getLogger("DefaultServerList");
+
+    static File location;
 
     @Override
     public String getMixinConfig() {
@@ -45,6 +47,9 @@ public class LoadingPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader {
 
     @Override
     public String getModContainerClass() {
+        if (FMLLaunchHandler.side() == Side.CLIENT) {
+            return ModContainer.class.getName();
+        }
         return null;
     }
 
@@ -55,8 +60,9 @@ public class LoadingPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader {
 
     @Override
     public void injectData(Map<String, Object> data) {
-        if (FMLLaunchHandler.side() == Side.CLIENT) {
-            Config.init(new File((File) data.get("mcLocation"), "config"));
+        location = (File) data.get("coremodLocation");
+        if (location == null) {
+            location = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
         }
     }
 
