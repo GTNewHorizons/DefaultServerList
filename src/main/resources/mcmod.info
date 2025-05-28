@@ -1,5 +1,6 @@
 [
     {
+      "__comment": "NOTE: If you change this, change ModContainer.java too!",
       "modid": "${modId}",
       "name": "${modName}",
       "description": "Add default servers to the multiplayer screen.",

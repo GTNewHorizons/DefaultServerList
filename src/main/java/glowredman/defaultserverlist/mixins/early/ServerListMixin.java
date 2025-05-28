@@ -1,8 +1,6 @@
 package glowredman.defaultserverlist.mixins.early;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
@@ -18,11 +16,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import glowredman.defaultserverlist.Config;
 
 @Mixin(ServerList.class)
-public class ServerListMixin {
+public abstract class ServerListMixin {
 
     @Shadow
     @Final
     private List<ServerData> servers;
+
+    @Shadow
+    public abstract void saveServerList();
 
     /**
      * Removes all servers from servers.dat that are already in the default list
@@ -50,15 +51,13 @@ public class ServerListMixin {
      */
     @Inject(at = @At("TAIL"), method = "saveServerList()V")
     private void saveDefaultServerList(CallbackInfo ci) {
-        if (Config.config.allowModifications) {
-            try {
-                Map<String, String> newServers = new LinkedHashMap<>();
-                Config.SERVERS.forEach(serverData -> newServers.put(serverData.serverName, serverData.serverIP));
-                Config.config.servers = newServers;
-                Config.saveConfig(Config.config);
-            } catch (Exception e) {
-                e.printStackTrace();
+        if (Config.allowModifications) {
+            String[] newServers = new String[Config.SERVERS.size()];
+            for (int i = 0; i < newServers.length; i++) {
+                ServerData data = Config.SERVERS.get(i);
+                newServers[i] = data.serverIP + '|' + data.serverName;
             }
+            Config.saveServers(newServers);
         }
     }
 
@@ -86,7 +85,7 @@ public class ServerListMixin {
     public void removeServerData(int index) {
         if (index < servers.size()) {
             servers.remove(index);
-        } else if (Config.config.allowModifications) {
+        } else if (Config.allowModifications) {
             Config.SERVERS.remove(index - servers.size());
         }
     }
@@ -122,9 +121,6 @@ public class ServerListMixin {
             this.saveDefaultServerList(null);
         }
     }
-
-    @Shadow
-    public void saveServerList() {}
 
     /**
      * Sets the ServerData instance stored for the given index in the list.
