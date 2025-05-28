@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
 
 import cpw.mods.fml.relauncher.FMLLaunchHandler;
@@ -19,6 +22,8 @@ import cpw.mods.fml.relauncher.Side;
 @Name("DefaultServerList")
 @TransformerExclusions("glowredman.defaultserverlist.LoadingPlugin")
 public class LoadingPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader {
+
+    public static final Logger LOGGER = LogManager.getLogger("DefaultServerList");
 
     @Override
     public String getMixinConfig() {
@@ -51,7 +56,7 @@ public class LoadingPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader {
     @Override
     public void injectData(Map<String, Object> data) {
         if (FMLLaunchHandler.side() == Side.CLIENT) {
-            Config.preInit(new File((File) data.get("mcLocation"), "config"));
+            Config.init(new File((File) data.get("mcLocation"), "config"));
         }
     }
 
