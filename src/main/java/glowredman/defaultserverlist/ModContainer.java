@@ -54,6 +54,6 @@ public class ModContainer extends DummyModContainer {
 
     @Subscribe
     public void preInit(FMLPreInitializationEvent event) {
-        Config.init(event.getModConfigurationDirectory());
+        new Thread(() -> Config.init(event.getModConfigurationDirectory()), "DSL Config Thread").start();;
     }
 }
