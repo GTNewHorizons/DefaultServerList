@@ -41,7 +41,7 @@ public class Config {
      * spotless:on
      */
 
-    public static void init(File configDir) {
+    static synchronized void init(File configDir) {
 
         // Setup
         File configFile = new File(configDir, "defaultserverlist.cfg");
@@ -98,6 +98,8 @@ public class Config {
         // Fetch servers from the specified remote location.
         if (useURL) {
             try {
+                LoadingPlugin.LOGGER.info("Attempting to load servers from remote location...");
+
                 // servers that are currently at the remote location
                 Map<String, String> remoteDefaultServers = gson.fromJson(
                         IOUtils.toString(new URL(url), StandardCharsets.UTF_8),
@@ -105,6 +107,8 @@ public class Config {
 
                             private static final long serialVersionUID = -1786059589535074931L;
                         }.getType());
+
+                LoadingPlugin.LOGGER.info("Successfully fetched {} servers from {}", remoteDefaultServers.size(), url);
 
                 if (allowModifications) {
                     // servers that were added to the remote location since the last time the list was fetched
@@ -168,7 +172,7 @@ public class Config {
         return map;
     }
 
-    public static void saveServers(String[] servers) {
+    public static synchronized void saveServers(String[] servers) {
         setStringList("servers", servers);
         config.save();
     }
