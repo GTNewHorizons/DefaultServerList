@@ -11,10 +11,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraftforge.common.config.Configuration;
 
@@ -41,7 +43,7 @@ public class Config {
      * spotless:on
      */
 
-    static synchronized void init(File configDir) {
+    static void init(File configDir) {
 
         // Setup
         File configFile = new File(configDir, "defaultserverlist.cfg");
@@ -84,7 +86,7 @@ public class Config {
                 CATEGORY_GENERAL,
                 "",
                 "The remote location to fetch the default servers from. The returned content must be in JSON format (formatted as a map where the keys are the server names and the values the corresponding ip-adresses).");
-        Map<String, String> servers = toMap(
+        final Map<String, String> servers = toMap(
                 config.getStringList(
                         "servers",
                         CATEGORY_GENERAL,
@@ -92,24 +94,41 @@ public class Config {
                         "The default servers. Format: ip|name"));
         String[] prevDefaultServersArray = config
                 .getStringList("prevDefaultServers", CATEGORY_GENERAL, new String[0], "DO NOT EDIT!");
-        Collection<String> prevDefaultServers = new ArrayList<>(prevDefaultServersArray.length);
+        final Collection<String> prevDefaultServers = new ArrayList<>(prevDefaultServersArray.length);
         Arrays.stream(prevDefaultServersArray).forEachOrdered(prevDefaultServers::add);
+
+        // save the config if it changed.
+        if (config.hasChanged()) {
+            config.save();
+        }
 
         // Fetch servers from the specified remote location.
         if (useURL) {
-            try {
+            final Map<String, String> remoteDefaultServers = new HashMap<>();
+
+            new Thread(() -> {
                 LoadingPlugin.LOGGER.info("Attempting to load servers from remote location...");
+                try {
+                    // servers that are currently at the remote location
+                    remoteDefaultServers.putAll(
+                            gson.fromJson(
+                                    IOUtils.toString(new URL(url), StandardCharsets.UTF_8),
+                                    new TypeToken<LinkedHashMap<String, String>>() {
 
-                // servers that are currently at the remote location
-                Map<String, String> remoteDefaultServers = gson.fromJson(
-                        IOUtils.toString(new URL(url), StandardCharsets.UTF_8),
-                        new TypeToken<LinkedHashMap<String, String>>() {
-
-                            private static final long serialVersionUID = -1786059589535074931L;
-                        }.getType());
-
+                                        private static final long serialVersionUID = -1786059589535074931L;
+                                    }.getType()));
+                } catch (Exception e) {
+                    LoadingPlugin.LOGGER.error(
+                            "Could not get default server list from {}! Are you connected to the internet?",
+                            url,
+                            e);
+                    return;
+                }
                 LoadingPlugin.LOGGER.info("Successfully fetched {} servers from {}", remoteDefaultServers.size(), url);
+            }, "DSL Config Thread").start();
 
+            // func_152344_a = addScheduledTask
+            Minecraft.getMinecraft().func_152344_a(() -> {
                 if (allowModifications) {
                     // servers that were added to the remote location since the last time the list was fetched
                     Map<String, String> diff = new LinkedHashMap<>();
@@ -125,28 +144,28 @@ public class Config {
                     // save if the remote location was updated
                     if (!diff.isEmpty()) {
                         servers.putAll(diff);
-                        prevDefaultServers = remoteDefaultServers.values();
+                        prevDefaultServers.clear();
+                        prevDefaultServers.addAll(remoteDefaultServers.values());
                         setStringList("servers", toArray(servers));
                         setStringList("prevDefaultServers", prevDefaultServers.toArray(new String[0]));
                     }
 
                 } else {
-                    servers = remoteDefaultServers;
+                    servers.clear();
+                    servers.putAll(remoteDefaultServers);
                     setStringList("servers", toArray(servers));
                 }
-            } catch (Exception e) {
-                LoadingPlugin.LOGGER
-                        .error("Could not get default server list from {}! Are you connected to the internet?", url, e);
-            }
-        }
 
-        // save the config if it changed.
-        if (config.hasChanged()) {
-            config.save();
+                // save the config if it changed.
+                if (config.hasChanged()) {
+                    config.save();
+                }
+            });
         }
 
         // Convert from Map<String, String> to List<ServerData>
-        servers.forEach((name, ip) -> SERVERS.add(new ServerData(name, ip)));
+        Minecraft.getMinecraft()
+                .func_152344_a(() -> servers.forEach((name, ip) -> SERVERS.add(new ServerData(name, ip))));
     }
 
     private static String[] toArray(Map<String, String> map) {
@@ -164,7 +183,7 @@ public class Config {
         for (String entry : array) {
             String[] parts = entry.split("\\|", 2);
             if (parts.length < 2) {
-                LoadingPlugin.LOGGER.warn("Could not parse entry {} because not '|' was found!", entry);
+                LoadingPlugin.LOGGER.warn("Could not parse entry {} because no '|' was found!", entry);
                 continue;
             }
             map.put(parts[1], parts[0]);
@@ -172,7 +191,7 @@ public class Config {
         return map;
     }
 
-    public static synchronized void saveServers(String[] servers) {
+    public static void saveServers(String[] servers) {
         setStringList("servers", servers);
         config.save();
     }
