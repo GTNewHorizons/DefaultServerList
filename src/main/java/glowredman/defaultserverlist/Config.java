@@ -3,15 +3,16 @@ package glowredman.defaultserverlist;
 import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 
 public class Config {
@@ -104,19 +106,12 @@ public class Config {
 
         // Fetch servers from the specified remote location.
         if (useURL) {
-            final Map<String, String> remoteDefaultServers = new HashMap<>();
+            final Map<String, String> remoteDefaultServers = new LinkedHashMap<>();
 
             new Thread(() -> {
                 LoadingPlugin.LOGGER.info("Attempting to load servers from remote location...");
                 try {
-                    // servers that are currently at the remote location
-                    remoteDefaultServers.putAll(
-                            gson.fromJson(
-                                    IOUtils.toString(new URL(url), StandardCharsets.UTF_8),
-                                    new TypeToken<LinkedHashMap<String, String>>() {
-
-                                        private static final long serialVersionUID = -1786059589535074931L;
-                                    }.getType()));
+                    fetchRemoteServers(url, remoteDefaultServers);
                 } catch (Exception e) {
                     LoadingPlugin.LOGGER.error(
                             "Could not get default server list from {}! Are you connected to the internet?",
@@ -124,48 +119,18 @@ public class Config {
                             e);
                     return;
                 }
+
                 LoadingPlugin.LOGGER.info("Successfully fetched {} servers from {}", remoteDefaultServers.size(), url);
+
+                // func_152344_a = addScheduledTask
+                Minecraft.getMinecraft()
+                        .func_152344_a(() -> parseServers(servers, prevDefaultServers, remoteDefaultServers));
             }, "DSL Config Thread").start();
-
-            // func_152344_a = addScheduledTask
-            Minecraft.getMinecraft().func_152344_a(() -> {
-                if (allowModifications) {
-                    // servers that were added to the remote location since the last time the list was fetched
-                    Map<String, String> diff = new LinkedHashMap<>();
-
-                    // calculate diff
-                    for (Map.Entry<String, String> entry : remoteDefaultServers.entrySet()) {
-                        String ip = entry.getValue();
-                        if (!prevDefaultServers.contains(ip)) {
-                            diff.put(entry.getKey(), ip);
-                        }
-                    }
-
-                    // save if the remote location was updated
-                    if (!diff.isEmpty()) {
-                        servers.putAll(diff);
-                        prevDefaultServers.clear();
-                        prevDefaultServers.addAll(remoteDefaultServers.values());
-                        setStringList("servers", toArray(servers));
-                        setStringList("prevDefaultServers", prevDefaultServers.toArray(new String[0]));
-                    }
-
-                } else {
-                    servers.clear();
-                    servers.putAll(remoteDefaultServers);
-                    setStringList("servers", toArray(servers));
-                }
-
-                // save the config if it changed.
-                if (config.hasChanged()) {
-                    config.save();
-                }
-            });
+        } else {
+            // Convert from Map<String, String> to List<ServerData>
+            // This has to be executed even if the servers aren't fetched from a remote server
+            servers.forEach(Config::addServer);
         }
-
-        // Convert from Map<String, String> to List<ServerData>
-        Minecraft.getMinecraft()
-                .func_152344_a(() -> servers.forEach((name, ip) -> SERVERS.add(new ServerData(name, ip))));
     }
 
     private static String[] toArray(Map<String, String> map) {
@@ -189,6 +154,61 @@ public class Config {
             map.put(parts[1], parts[0]);
         }
         return map;
+    }
+
+    private static void fetchRemoteServers(String url, Map<String, String> remoteDefaultServers)
+            throws JsonSyntaxException, IOException {
+        URLConnection connection = new URL(url).openConnection();
+        connection.setConnectTimeout(10000);
+        connection.setReadTimeout(10000);
+        String rawJson = IOUtils.toString(connection.getInputStream(), StandardCharsets.UTF_8);
+        TypeToken<LinkedHashMap<String, String>> typeToken = new TypeToken<>() {
+
+            private static final long serialVersionUID = -1786059589535074931L;
+        };
+        remoteDefaultServers.putAll(new Gson().fromJson(rawJson, typeToken.getType()));
+    }
+
+    private static void parseServers(Map<String, String> servers, Collection<String> prevDefaultServers,
+            Map<String, String> remoteDefaultServers) {
+        if (allowModifications) {
+            // servers that were added to the remote location since the last time the list was fetched
+            Map<String, String> diff = new LinkedHashMap<>();
+
+            // calculate diff
+            for (Map.Entry<String, String> entry : remoteDefaultServers.entrySet()) {
+                String ip = entry.getValue();
+                if (!prevDefaultServers.contains(ip)) {
+                    diff.put(entry.getKey(), ip);
+                }
+            }
+
+            // save if the remote location was updated
+            if (!diff.isEmpty()) {
+                servers.putAll(diff);
+                prevDefaultServers.clear();
+                prevDefaultServers.addAll(remoteDefaultServers.values());
+                setStringList("servers", toArray(servers));
+                setStringList("prevDefaultServers", prevDefaultServers.toArray(new String[0]));
+            }
+
+        } else {
+            servers.clear();
+            servers.putAll(remoteDefaultServers);
+            setStringList("servers", toArray(servers));
+        }
+
+        // Convert from Map<String, String> to List<ServerData>
+        servers.forEach(Config::addServer);
+
+        // save the config if it changed.
+        if (config.hasChanged()) {
+            config.save();
+        }
+    }
+
+    private static void addServer(String name, String ip) {
+        SERVERS.add(new ServerData(name, ip));
     }
 
     public static void saveServers(String[] servers) {
