@@ -4,6 +4,7 @@ import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -161,12 +162,15 @@ public class Config {
         URLConnection connection = new URL(url).openConnection();
         connection.setConnectTimeout(10000);
         connection.setReadTimeout(10000);
-        String rawJson = IOUtils.toString(connection.getInputStream(), StandardCharsets.UTF_8);
-        TypeToken<LinkedHashMap<String, String>> typeToken = new TypeToken<>() {
 
-            private static final long serialVersionUID = -1786059589535074931L;
-        };
-        remoteDefaultServers.putAll(new Gson().fromJson(rawJson, typeToken.getType()));
+        try (InputStream is = connection.getInputStream()) {
+            String rawJson = IOUtils.toString(is, StandardCharsets.UTF_8);
+            TypeToken<LinkedHashMap<String, String>> typeToken = new TypeToken<>() {
+
+                private static final long serialVersionUID = -1786059589535074931L;
+            };
+            remoteDefaultServers.putAll(new Gson().fromJson(rawJson, typeToken.getType()));
+        }
     }
 
     private static void parseServers(Map<String, String> servers, Collection<String> prevDefaultServers,
