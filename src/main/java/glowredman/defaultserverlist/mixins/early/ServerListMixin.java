@@ -33,9 +33,9 @@ public abstract class ServerListMixin {
     @Inject(at = @At("TAIL"), method = "loadServerList()V")
     private void removeDuplicateServers(CallbackInfo ci) {
         servers.removeIf(o -> {
-            String s1 = o.serverIP.replace("http://", "").replace("https://", "").replace(":25565", "");
+            String s1 = o.serverIP.replace(":25565", "");
             for (ServerData s2 : Config.SERVERS) {
-                if (s1.equals(s2.serverIP.replace("http://", "").replace("https://", "").replace(":25565", ""))) {
+                if (s1.equals(s2.serverIP.replace(":25565", ""))) {
                     return true;
                 }
             }
