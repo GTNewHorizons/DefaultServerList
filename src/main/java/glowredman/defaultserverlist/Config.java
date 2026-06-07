@@ -74,6 +74,11 @@ public class Config {
         }
 
         // get config values and convert them to a usable format. This also adds comments to the properties.
+        boolean enabled = config.getBoolean(
+                "enabled",
+                CATEGORY_GENERAL,
+                true,
+                "Whether or not this mod is enabled. If disabled, no default servers will be added.");
         boolean useURL = config.getBoolean(
                 "useURL",
                 CATEGORY_GENERAL,
@@ -103,6 +108,12 @@ public class Config {
         // save the config if it changed.
         if (config.hasChanged()) {
             config.save();
+        }
+
+        // If the mod is disabled, don't add any default servers.
+        if (!enabled) {
+            LoadingPlugin.LOGGER.info("DefaultServerList is disabled in the config.");
+            return;
         }
 
         // Fetch servers from the specified remote location.
